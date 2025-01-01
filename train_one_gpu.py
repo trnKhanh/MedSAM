@@ -115,32 +115,32 @@ class NpyDataset(Dataset):
 
 
 # %% sanity test of dataset class
-tr_dataset = NpyDataset("data/npy/CT_Abd")
-tr_dataloader = DataLoader(tr_dataset, batch_size=8, shuffle=True)
-for step, (image, gt, bboxes, names_temp) in enumerate(tr_dataloader):
-    print(image.shape, gt.shape, bboxes.shape)
-    # show the example
-    _, axs = plt.subplots(1, 2, figsize=(25, 25))
-    idx = random.randint(0, 7)
-    axs[0].imshow(image[idx].cpu().permute(1, 2, 0).numpy())
-    show_mask(gt[idx].cpu().numpy(), axs[0])
-    show_box(bboxes[idx].numpy(), axs[0])
-    axs[0].axis("off")
-    # set title
-    axs[0].set_title(names_temp[idx])
-    idx = random.randint(0, 7)
-    axs[1].imshow(image[idx].cpu().permute(1, 2, 0).numpy())
-    show_mask(gt[idx].cpu().numpy(), axs[1])
-    show_box(bboxes[idx].numpy(), axs[1])
-    axs[1].axis("off")
-    # set title
-    axs[1].set_title(names_temp[idx])
-    # plt.show()
-    plt.subplots_adjust(wspace=0.01, hspace=0)
-    plt.savefig("./data_sanitycheck.png", bbox_inches="tight", dpi=300)
-    plt.close()
-    break
-
+# tr_dataset = NpyDataset("data/npy/CT_Abd")
+# tr_dataloader = DataLoader(tr_dataset, batch_size=8, shuffle=True)
+# for step, (image, gt, bboxes, names_temp) in enumerate(tr_dataloader):
+#     print(image.shape, gt.shape, bboxes.shape)
+#     # show the example
+#     _, axs = plt.subplots(1, 2, figsize=(25, 25))
+#     idx = random.randint(0, 7)
+#     axs[0].imshow(image[idx].cpu().permute(1, 2, 0).numpy())
+#     show_mask(gt[idx].cpu().numpy(), axs[0])
+#     show_box(bboxes[idx].numpy(), axs[0])
+#     axs[0].axis("off")
+#     # set title
+#     axs[0].set_title(names_temp[idx])
+#     idx = random.randint(0, 7)
+#     axs[1].imshow(image[idx].cpu().permute(1, 2, 0).numpy())
+#     show_mask(gt[idx].cpu().numpy(), axs[1])
+#     show_box(bboxes[idx].numpy(), axs[1])
+#     axs[1].axis("off")
+#     # set title
+#     axs[1].set_title(names_temp[idx])
+#     # plt.show()
+#     plt.subplots_adjust(wspace=0.01, hspace=0)
+#     plt.savefig("./data_sanitycheck.png", bbox_inches="tight", dpi=300)
+#     plt.close()
+#     break
+#
 # %% set up parser
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -199,7 +199,7 @@ if args.use_wandb:
 # %% set up model for training
 # device = args.device
 run_id = datetime.now().strftime("%Y%m%d-%H%M")
-model_save_path = join(args.work_dir, args.task_name + "-" + run_id)
+model_save_path = join(args.work_dir, args.task_name)
 device = torch.device(args.device)
 # %% set up model
 
@@ -271,12 +271,16 @@ def main():
         sum(p.numel() for p in medsam_model.parameters() if p.requires_grad),
     )  # 93729252
 
-    img_mask_encdec_params = list(medsam_model.image_encoder.parameters()) + list(
-        medsam_model.mask_decoder.parameters()
-    )
+    ############################################################################
+    # TODO: Change code here to configure what to train
+    # img_mask_encdec_params = list(medsam_model.image_encoder.parameters()) + list(
+    #     medsam_model.mask_decoder.parameters()
+    # )
+    img_mask_encdec_params = list(medsam_model.mask_decoder.parameters())
     optimizer = torch.optim.AdamW(
         img_mask_encdec_params, lr=args.lr, weight_decay=args.weight_decay
     )
+    ############################################################################
     print(
         "Number of image encoder and mask decoder parameters: ",
         sum(p.numel() for p in img_mask_encdec_params if p.requires_grad),
